@@ -44,7 +44,7 @@ if (-not $Env:SKIP_PROXY_TESTS) {
 	javaw -jar poxyproxy.jar --port 8080 --credentials foo:bar --auth-type basic --quiet
 
 	Write-Host "Starting HTTP proxy (NTLM)..."
-	javaw -jar poxyproxy.jar --port 8090 --credentials foo:bar --auth-type ntlm --quiet
+	javaw -jar poxyproxy.jar --port 8090 --credentials foo:bar --auth-type ntlm --debug
 }
 
 if (-not $Env:SKIP_OFFLINE_TESTS) {
