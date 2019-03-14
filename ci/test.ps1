@@ -40,11 +40,11 @@ Write-Host "####################################################################
 if (-not $Env:SKIP_PROXY_TESTS) {
 	Write-Host ""
 	Write-Host "Starting HTTP proxy (Basic)..."
-	Invoke-WebRequest -Method GET -Uri https://github.com/ethomson/poxyproxy/releases/download/v0.6.0/poxyproxy-0.6.0.jar -OutFile poxyproxy.jar
+	Invoke-WebRequest -Method GET -Uri https://github.com/ethomson/poxyproxy/releases/download/v0.6.1/poxyproxy-0.6.1.jar -OutFile poxyproxy.jar
 	javaw -jar poxyproxy.jar --port 8080 --credentials foo:bar --auth-type basic --quiet
 
 	Write-Host "Starting HTTP proxy (NTLM)..."
-	javaw -jar poxyproxy.jar --port 8090 --credentials foo:bar --auth-type ntlm --debug
+	javaw -jar poxyproxy.jar --port 8090 --credentials foo:bar --auth-type ntlm --trace
 }
 
 if (-not $Env:SKIP_OFFLINE_TESTS) {
