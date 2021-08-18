@@ -5,6 +5,8 @@
  * a Linking Exception. For full terms see the included COPYING file.
  */
 
+#include <string.h>
+
 #include "pack.h"
 
 #include "delta.h"
@@ -1180,36 +1182,34 @@ int git_packfile_alloc(
 {
 	struct stat st;
 	struct git_pack_file *p;
-	size_t path_len = path ? strlen(path) : 0, alloc_len;
+	size_t path_len = path ? strlen(path) : 0;
+	size_t alloc_len;
+	size_t root_len;
+	git_str buf;
 
 	*pack_out = NULL;
 
-	if (path_len < strlen(".idx"))
-		return git_odb__error_notfound("invalid packfile path", NULL, 0);
+	if (git__suffixcmp(path, ".idx") == 0) {
+		root_len = path_len - strlen(".idx");
+	} else if (git__suffixcmp(path, ".pack") == 0) {
+		root_len = path_len - strlen(".pack");
+	} else {
+		/* If the given path has no extension, we treat it as a .pack
+		 * but don't do any searching for related extensions. */
+		root_len = path_len;
+	}
 
-	GIT_ERROR_CHECK_ALLOC_ADD(&alloc_len, sizeof(*p), path_len);
+	GIT_ERROR_CHECK_ALLOC_ADD(&alloc_len, sizeof(*p), root_len);
+	if (root_len != path_len)
+		GIT_ERROR_CHECK_ALLOC_ADD(&alloc_len, alloc_len, sizeof(".pack"));
 	GIT_ERROR_CHECK_ALLOC_ADD(&alloc_len, alloc_len, 2);
 
 	p = git__calloc(1, alloc_len);
 	GIT_ERROR_CHECK_ALLOC(p);
 
-	memcpy(p->pack_name, path, path_len + 1);
-
-	/*
-	 * Make sure a corresponding .pack file exists and that
-	 * the index looks sane.
-	 */
-	if (git__suffixcmp(path, ".idx") == 0) {
-		size_t root_len = path_len - strlen(".idx");
-
-		if (!git_disable_pack_keep_file_checks) {
-			memcpy(p->pack_name + root_len, ".keep", sizeof(".keep"));
-			if (git_fs_path_exists(p->pack_name) == true)
-				p->pack_keep = 1;
-		}
-
+	memcpy(p->pack_name, path, root_len + 1);
+	if (root_len != path_len)
 		memcpy(p->pack_name + root_len, ".pack", sizeof(".pack"));
-	}
 
 	if (p_stat(p->pack_name, &st) < 0 || !S_ISREG(st.st_mode)) {
 		git__free(p);
@@ -1246,6 +1246,23 @@ int git_packfile_alloc(
 		git_mutex_free(&p->lock);
 		git__free(p);
 		return -1;
+	}
+
+	/* Check for related extensions, if the given path has an extension. */
+	if (root_len != path_len && !git_disable_pack_keep_file_checks) {
+		GIT_ERROR_CHECK_ALLOC_ADD(&alloc_len, root_len, sizeof(".promisor"));
+		git_str_init(&buf, alloc_len);
+
+		/* Check for a .keep file. */
+		memcpy(buf.ptr, path, root_len);
+		memcpy(buf.ptr + root_len, ".keep", sizeof(".keep"));
+		p->pack_keep = git_fs_path_exists(buf.ptr) == true;
+
+		/* Check for a .promisor file. */
+		memcpy(buf.ptr + root_len, ".promisor", sizeof(".promisor"));
+		p->pack_promisor = git_fs_path_exists(buf.ptr) == true;
+
+		git_str_dispose(&buf);
 	}
 
 	*pack_out = p;

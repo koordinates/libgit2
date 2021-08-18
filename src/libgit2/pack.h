@@ -106,7 +106,8 @@ struct git_pack_file {
 	         oid_size:6,
 	         pack_local:1,
 	         pack_keep:1,
-		 has_cache:1;
+		     has_cache:1,
+		 pack_promisor:1;
 
 	int index_version;
 	git_time_t mtime;
