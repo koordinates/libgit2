@@ -73,15 +73,14 @@ void test_object_lookupmissing__missing_with_promisor(void)
 	cl_assert_equal_i(GIT_ENOTFOUND,
 		git_object_lookup_bypath(&g_result_object, (git_object*)g_root_tree,
 			"files/second/large_file", GIT_OBJECT_ANY));
-	cl_assert_equal_i(GIT_EOBJECTMISSING, git_error_last()->subcode);
-
+	cl_assert_equal_i(GIT_EOBJECTPROMISED, git_error_last()->subcode);
 
 	/* Path -> tree-entry -> object. */
 	cl_git_pass(git_tree_entry_bypath(&g_result_entry, g_root_tree,
 		"files/second/large_file"));
 	cl_assert_equal_i(GIT_ENOTFOUND,
 		git_tree_entry_to_object(&g_result_object, g_repo, g_result_entry));
-	cl_assert_equal_i(GIT_EOBJECTMISSING, git_error_last()->subcode);
+	cl_assert_equal_i(GIT_EOBJECTPROMISED, git_error_last()->subcode);
 
 }
 
