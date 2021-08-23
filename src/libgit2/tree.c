@@ -295,7 +295,7 @@ int git_tree_entry_to_object(
 
 	error = git_object_lookup(object_out, repo, &entry->oid, GIT_OBJECT_ANY);
 	return (error == GIT_ENOTFOUND) ?
-		git_odb__error_notfound_missing(&entry->oid) : error;
+		git_odb__error_missing_or_promised(&entry->oid) : error;
 }
 
 static const git_tree_entry *entry_fromname(
@@ -962,7 +962,7 @@ int git_tree_entry_bypath(
 	error = git_tree_lookup(&subtree, root->object.repo, &entry->oid);
 	if (error < 0) {
 		return (error == GIT_ENOTFOUND) ?
-			git_odb__error_notfound_missing(&entry->oid) : error;
+			git_odb__error_missing_or_promised(&entry->oid) : error;
 	}
 
 	error = git_tree_entry_bypath(

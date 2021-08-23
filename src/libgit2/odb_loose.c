@@ -17,6 +17,7 @@
 #include "filebuf.h"
 #include "object.h"
 #include "zstream.h"
+#include "threadstate.h"
 
 #include "git2/odb_backend.h"
 #include "git2/types.h"
@@ -618,6 +619,7 @@ static int loose_backend__read(void **buffer_p, size_t *len_p, git_object_t *typ
 		error = git_odb__error_notfound("no matching loose object",
 			oid, ((struct loose_backend *)backend)->oid_hexsize);
 	} else if ((error = read_loose(&raw, &object_path)) == 0) {
+		GIT_THREADSTATE->last_read_object_flags = (git_last_read_object_flags){0};
 		*buffer_p = raw.data;
 		*len_p = raw.len;
 		*type_p = raw.type;

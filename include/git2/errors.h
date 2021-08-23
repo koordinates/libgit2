@@ -72,7 +72,9 @@ typedef enum {
 
 	/** Subcodes for GIT_ENOTFOUND */
 	GIT_ENOSUCHPATH     = -3001, /**< Object at requested path DOES NOT exist */
-	GIT_EOBJECTMISSING  = -3002  /**< Object at requested path SHOULD exist, but is not in the ODB. */
+	GIT_EOBJECTMISSING  = -3002, /**< Object at requested path SHOULD exist, but is not in the ODB. */
+	GIT_EOBJECTPROMISED = -3003  /**< Same as GIT_EOBJECTMISSING, but object is referenced in a
+	                                   promisor packfile - so it is missing due to a partial clone. */
 } git_error_subcode;
 
 /**

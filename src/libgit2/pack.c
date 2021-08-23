@@ -15,6 +15,7 @@
 #include "odb.h"
 #include "oid.h"
 #include "oidarray.h"
+#include "threadstate.h"
 
 /* Option to bypass checking existence of '.keep' files */
 bool git_disable_pack_keep_file_checks = false;
@@ -698,6 +699,8 @@ int git_packfile_unpack(
 	git_mutex_unlock(&p->lock);
 	if (error < 0)
 		return error;
+
+	GIT_THREADSTATE->last_read_object_flags.pack_promisor = p->pack_promisor;
 
 	/*
 	 * TODO: optionally check the CRC on the packfile

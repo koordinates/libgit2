@@ -17,6 +17,7 @@
 #include "repository.h"
 #include "blob.h"
 #include "oid.h"
+#include "threadstate.h"
 
 #include "git2/odb_backend.h"
 #include "git2/oid.h"
@@ -1974,12 +1975,17 @@ int git_odb__error_notfound(
 	return GIT_ENOTFOUND;
 }
 
-
-int git_odb__error_notfound_missing(const git_oid *oid)
+int git_odb__error_missing_or_promised(const git_oid *oid)
 {
-	git_odb__error_notfound("object is missing/promised", oid, GIT_OID_HEXSZ);
-	git_error_subcode_set(GIT_EOBJECTMISSING);
+	if (GIT_THREADSTATE->last_read_object_flags.pack_promisor) {
+		git_odb__error_notfound("object is missing+promised", oid, GIT_OID_HEXSZ);
+		git_error_subcode_set(GIT_EOBJECTPROMISED);
+	} else {
+		git_odb__error_notfound("object is missing", oid, GIT_OID_HEXSZ);
+		git_error_subcode_set(GIT_EOBJECTMISSING);
+	}
 	return GIT_ENOTFOUND;
+
 }
 
 static int error_null_oid(int error, const char *message)
