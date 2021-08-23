@@ -14,6 +14,12 @@ typedef struct {
 	git_error error_t;
 	git_buf error_buf;
 	char oid_fmt[GIT_OID_HEXSZ+1];
+    union {
+        struct {
+            unsigned pack_promisor:1;
+        };
+        unsigned last_read_object_flags;
+    };
 } git_threadstate;
 
 extern int git_threadstate_global_init(void);

@@ -59,6 +59,7 @@ typedef enum {
 	GIT_EINDEXDIRTY     = -34,	/**< Unsaved changes in the index would be overwritten */
 	GIT_EAPPLYFAIL      = -35,	/**< Patch application failed */
 	GIT_EMISSING        = -36,  /**< Encountered tree-entry not backed by object */
+	GIT_EPROMISED       = -37,  /**< Tree-entry in a promisor-packfile not backed by object */
 } git_error_code;
 
 /**

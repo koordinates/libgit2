@@ -485,6 +485,8 @@ int git_object_lookup_bypath(
 	}
 
 	error = git_tree_entry_to_object(out, git_object_owner(treeish), entry);
+	if (error == GIT_EMISSING)
+		return git_odb__error_missing_or_promised(entry->oid);
 
 cleanup:
 	git_tree_entry_free(entry);
