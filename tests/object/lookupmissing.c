@@ -66,12 +66,13 @@ void test_object_lookupmissing__missing_with_promisor(void)
 	 * so probably is available at the remote (ie, a partial clone) */
 
 	/* Path -> object. */
-	/* TODO: add a new error code for this - EPROMISED. */
-	cl_assert_equal_i(GIT_EMISSING,
+	cl_assert_equal_i(GIT_EPROMISED,
 		git_object_lookup_bypath(&g_result_object, (git_object*)g_root_tree,
 			"files/second/large_file", GIT_OBJECT_ANY));
 
-	/* Path -> tree-entry -> object. */
+	/* Path -> tree-entry -> object.
+	 * We can't tell if this is missing or promised since we can't recognise
+	 * which packfile the supplied tree-entry came from. */
 	cl_git_pass(git_tree_entry_bypath(&g_result_entry, g_root_tree,
 		"files/second/large_file"));
 	/* TODO: add a new error code for this - EPROMISED. */
