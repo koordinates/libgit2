@@ -126,6 +126,12 @@ int git_odb__error_notfound(
 int git_odb__error_notfound_missing(const git_oid *oid);
 
 /*
+ * Generate a GIT_EMISSING or GIT_EPROMISED error for the ODB,
+ * depending on whether the last object was read from a promisor packfile.
+ */
+int git_odb__error_missing_or_promised(const git_oid *oid);
+
+/*
  * Generate a GIT_EAMBIGUOUS error for the ODB.
  */
 int git_odb__error_ambiguous(const char *message);
