@@ -590,7 +590,8 @@ static int write_tree(
 	git_index *index,
 	const char *dirname,
 	size_t start,
-	git_str *shared_buf)
+	git_str *shared_buf,
+	bool validate_oids)
 {
 	git_treebuilder *bld = NULL;
 	size_t i, entries = git_index_entrycount(index);
@@ -643,7 +644,7 @@ static int write_tree(
 			GIT_ERROR_CHECK_ALLOC(subdir);
 
 			/* Write out the subtree */
-			written = write_tree(&sub_oid, repo, index, subdir, i, shared_buf);
+			written = write_tree(&sub_oid, repo, index, subdir, i, shared_buf, validate_oids);
 			if (written < 0) {
 				git__free(subdir);
 				goto on_error;
@@ -664,12 +665,12 @@ static int write_tree(
 				last_comp = subdir;
 			}
 
-			error = append_entry(bld, last_comp, &sub_oid, S_IFDIR, true);
+			error = append_entry(bld, last_comp, &sub_oid, S_IFDIR, validate_oids);
 			git__free(subdir);
 			if (error < 0)
 				goto on_error;
 		} else {
-			error = append_entry(bld, filename, &entry->id, entry->mode, true);
+			error = append_entry(bld, filename, &entry->id, entry->mode, validate_oids);
 			if (error < 0)
 				goto on_error;
 		}
@@ -687,12 +688,13 @@ on_error:
 }
 
 int git_tree__write_index(
-	git_oid *oid, git_index *index, git_repository *repo)
+	git_oid *oid, git_index *index, git_repository *repo, unsigned int flags)
 {
 	int ret;
 	git_tree *tree;
 	git_str shared_buf = GIT_STR_INIT;
 	bool old_ignore_case = false;
+	bool validate_oids = (flags & GIT_INDEX_WRITE_TREE_VALIDATE_OIDS) != 0;
 
 	GIT_ASSERT_ARG(oid);
 	GIT_ASSERT_ARG(index);
@@ -719,7 +721,7 @@ int git_tree__write_index(
 		git_index__set_ignore_case(index, false);
 	}
 
-	ret = write_tree(oid, repo, index, "", 0, &shared_buf);
+	ret = write_tree(oid, repo, index, "", 0, &shared_buf, validate_oids);
 	git_str_dispose(&shared_buf);
 
 	if (old_ignore_case)

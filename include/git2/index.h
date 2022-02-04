@@ -166,6 +166,15 @@ typedef enum {
 	GIT_INDEX_STAGE_THEIRS = 3
 } git_index_stage_t;
 
+/** Git index write-to-tree extended options */
+typedef enum {
+    /** Validate if all blob OIDs in the index are present in the repository. */
+    GIT_INDEX_WRITE_TREE_VALIDATE_OIDS = (1u << 0),
+
+    /** Default options. */
+    GIT_INDEX_WRITE_TREE_DEFAULT = GIT_INDEX_WRITE_TREE_VALIDATE_OIDS
+} git_index_write_tree_t;
+
 /**
  * Create a new bare Git index object as a memory representation
  * of the Git index file in 'index_path', without a repository
@@ -344,6 +353,28 @@ GIT_EXTERN(int) git_index_read_tree(git_index *index, const git_tree *tree);
 GIT_EXTERN(int) git_index_write_tree(git_oid *out, git_index *index);
 
 /**
+ * Write the index as a tree
+ *
+ * This method will scan the index and write a representation
+ * of its current state back to disk; it recursively creates
+ * tree objects for each of the subtrees stored in the index,
+ * but only returns the OID of the root tree. This is the OID
+ * that can be used e.g. to create a commit.
+ *
+ * The index instance cannot be bare, and needs to be associated
+ * to an existing repository.
+ *
+ * The index must not contain any file in conflict.
+ *
+ * @param out Pointer where to store the OID of the written tree
+ * @param index Index to write
+ * @param flags A combination of GIT_INDEX_WRITE_TREE options.
+ * @return 0 on success, GIT_EUNMERGED when the index is not clean
+ * or an error code
+ */
+GIT_EXTERN(int) git_index_write_tree_ext(git_oid *out, git_index *index, unsigned int flags);
+
+/**
  * Write the index as a tree to the given repository
  *
  * This method will do the same as `git_index_write_tree`, but
@@ -359,6 +390,24 @@ GIT_EXTERN(int) git_index_write_tree(git_oid *out, git_index *index);
  * or an error code
  */
 GIT_EXTERN(int) git_index_write_tree_to(git_oid *out, git_index *index, git_repository *repo);
+
+/**
+ * Write the index as a tree to the given repository
+ *
+ * This method will do the same as `git_index_write_tree`, but
+ * letting the user choose the repository where the tree will
+ * be written.
+ *
+ * The index must not contain any file in conflict.
+ *
+ * @param out Pointer where to store OID of the written tree
+ * @param index Index to write
+ * @param repo Repository where to write the tree
+ * @param flags A combination of GIT_INDEX_WRITE_TREE options.
+ * @return 0 on success, GIT_EUNMERGED when the index is not clean
+ * or an error code
+ */
+GIT_EXTERN(int) git_index_write_tree_to_ext(git_oid *out, git_index *index, git_repository *repo, unsigned int flags);
 
 /**@}*/
 
