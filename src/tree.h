@@ -48,7 +48,7 @@ int git_tree__parse_raw(void *_tree, const char *data, size_t size);
  * Write a tree to the given repository
  */
 int git_tree__write_index(
-	git_oid *oid, git_index *index, git_repository *repo);
+	git_oid *oid, git_index *index, git_repository *repo, unsigned int flags);
 
 /**
  * Obsolete mode kept for compatibility reasons
