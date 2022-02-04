@@ -816,6 +816,11 @@ const char *git_index_path(const git_index *index)
 
 int git_index_write_tree(git_oid *oid, git_index *index)
 {
+	return git_index_write_tree_ext(oid, index, GIT_INDEX_WRITE_TREE_DEFAULT);
+}
+
+int git_index_write_tree_ext(git_oid *oid, git_index *index, unsigned int flags)
+{
 	git_repository *repo;
 
 	GIT_ASSERT_ARG(oid);
@@ -827,17 +832,23 @@ int git_index_write_tree(git_oid *oid, git_index *index)
 		return create_index_error(-1, "Failed to write tree. "
 		  "the index file is not backed up by an existing repository");
 
-	return git_tree__write_index(oid, index, repo);
+	return git_tree__write_index(oid, index, repo, flags);
 }
 
 int git_index_write_tree_to(
 	git_oid *oid, git_index *index, git_repository *repo)
 {
+	return git_index_write_tree_to_ext(oid, index, repo, GIT_INDEX_WRITE_TREE_DEFAULT);
+}
+
+int git_index_write_tree_to_ext(
+	git_oid *oid, git_index *index, git_repository *repo, unsigned int flags)
+{
 	GIT_ASSERT_ARG(oid);
 	GIT_ASSERT_ARG(index);
 	GIT_ASSERT_ARG(repo);
 
-	return git_tree__write_index(oid, index, repo);
+	return git_tree__write_index(oid, index, repo, flags);
 }
 
 size_t git_index_entrycount(const git_index *index)
