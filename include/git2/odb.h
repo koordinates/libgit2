@@ -289,6 +289,24 @@ GIT_EXTERN(int) git_odb_expand_ids(
 GIT_EXTERN(int) git_odb_refresh(struct git_odb *db);
 
 /**
+ * Set the default lookup flags for all lookup / read operations.
+ *
+ * @param db database to set the flags to.
+ * @param flags flags affecting the lookup (see `git_odb_lookup_flags_t`)
+ * @return 0 on success, error code otherwise
+ */
+GIT_EXTERN(int) git_odb_set_lookup_flags(struct git_odb *db, unsigned int flags);
+
+/**
+ * Get the default lookup flags for all lookup / read operations.
+ *
+ * @param db database to get the flags from.
+ * @param flags where the current flags affecting the lookup are stored (see `git_odb_lookup_flags_t`)
+ * @return 0 on success, error code otherwise
+ */
+GIT_EXTERN(int) git_odb_get_lookup_flags(struct git_odb *db, unsigned int *flags);
+
+/**
  * List all objects available in the database
  *
  * The callback will be called for each object available in the
