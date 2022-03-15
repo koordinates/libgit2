@@ -57,6 +57,7 @@ static git_cache *odb_cache(git_odb *odb)
 static int odb_otype_fast(git_object_t *type_p, git_odb *db, const git_oid *id);
 static int load_alternates(git_odb *odb, const char *objects_dir, int alternate_depth);
 static int error_null_oid(int error, const char *message);
+static int odb_lookup_refresh_1(struct git_odb *db, unsigned int flags);
 
 static git_object_t odb_hardcoded_type(const git_oid *id)
 {
@@ -903,7 +904,7 @@ int git_odb_exists_ext(git_odb *db, const git_oid *id, unsigned int flags)
 	if (odb_exists_1(db, id, false))
 		return 1;
 
-	if (!(flags & GIT_ODB_LOOKUP_NO_REFRESH) && !git_odb_refresh(db))
+	if (!odb_lookup_refresh_1(db, flags))
 		return odb_exists_1(db, id, true);
 
 	/* Failed to refresh, hence not found */
@@ -989,7 +990,7 @@ int git_odb_exists_prefix(
 
 	error = odb_exists_prefix_1(out, db, &key, len, false);
 
-	if (error == GIT_ENOTFOUND && !git_odb_refresh(db))
+	if (error == GIT_ENOTFOUND && !odb_lookup_refresh_1(db, 0))
 		error = odb_exists_prefix_1(out, db, &key, len, true);
 
 	if (error == GIT_ENOTFOUND)
@@ -1154,7 +1155,7 @@ int git_odb__read_header_or_object(
 
 	error = odb_read_header_1(len_p, type_p, db, id, false);
 
-	if (error == GIT_ENOTFOUND && !git_odb_refresh(db))
+	if (error == GIT_ENOTFOUND && !odb_lookup_refresh_1(db, 0))
 		error = odb_read_header_1(len_p, type_p, db, id, true);
 
 	if (error == GIT_ENOTFOUND)
@@ -1265,7 +1266,7 @@ int git_odb_read(git_odb_object **out, git_odb *db, const git_oid *id)
 
 	error = odb_read_1(out, db, id, false);
 
-	if (error == GIT_ENOTFOUND && !git_odb_refresh(db))
+	if (error == GIT_ENOTFOUND && !odb_lookup_refresh_1(db, 0))
 		error = odb_read_1(out, db, id, true);
 
 	if (error == GIT_ENOTFOUND)
@@ -1414,7 +1415,7 @@ int git_odb_read_prefix(
 
 	error = read_prefix_1(out, db, &key, len, false);
 
-	if (error == GIT_ENOTFOUND && !git_odb_refresh(db))
+	if (error == GIT_ENOTFOUND && !odb_lookup_refresh_1(db, 0))
 		error = read_prefix_1(out, db, &key, len, true);
 
 	if (error == GIT_ENOTFOUND)
@@ -1783,6 +1784,26 @@ int git_odb_refresh(struct git_odb *db)
 	git_mutex_unlock(&db->lock);
 
 	return 0;
+}
+
+int git_odb_set_lookup_flags(git_odb *db, unsigned int lookup_flags)
+{
+	db->lookup_flags = lookup_flags;
+	return 0;
+}
+
+int git_odb_get_lookup_flags(git_odb *db, unsigned int *lookup_flags)
+{
+	*lookup_flags = db->lookup_flags;
+	return 0;
+}
+
+int odb_lookup_refresh_1(struct git_odb *db, unsigned int flags)
+{
+	if ((flags | db->lookup_flags) & GIT_ODB_LOOKUP_NO_REFRESH)
+		return 1;
+
+	return git_odb_refresh(db);
 }
 
 int git_odb__error_mismatch(const git_oid *expected, const git_oid *actual)

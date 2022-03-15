@@ -50,6 +50,7 @@ struct git_odb {
 	git_cache own_cache;
 	git_commit_graph *cgraph;
 	unsigned int do_fsync :1;
+	unsigned int lookup_flags;
 };
 
 typedef enum {
