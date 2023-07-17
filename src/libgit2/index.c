@@ -900,7 +900,7 @@ void git_index_entry__init_from_stat(
 	entry->mtime.nanoseconds = st->st_mtime_nsec;
 	entry->ctime.nanoseconds = st->st_ctime_nsec;
 #endif
-	entry->dev  = st->st_rdev;
+	entry->dev  = st->st_dev;
 	entry->ino  = st->st_ino;
 	entry->mode = (!trust_mode && S_ISREG(st->st_mode)) ?
 		git_index__create_mode(0666) : git_index__create_mode(st->st_mode);
@@ -1697,6 +1697,35 @@ int git_index_add(git_index *index, const git_index_entry *source_entry)
 	if ((ret = index_entry_dup(&entry, index, source_entry)) < 0 ||
 		(ret = index_insert(index, &entry, 1, true, true, false)) < 0)
 		return ret;
+
+	git_tree_cache_invalidate_path(index->tree, entry->path);
+	return 0;
+}
+
+int git_index_add_entry_with_custom_stat(git_index *index, const git_index_entry *source_entry, const char *path_for_stat)
+{
+	git_index_entry *entry = NULL;
+	struct stat st;
+	int error;
+
+	GIT_ASSERT_ARG(index);
+	GIT_ASSERT_ARG(source_entry && source_entry->path);
+
+	if (!valid_filemode(source_entry->mode)) {
+		git_error_set(GIT_ERROR_INDEX, "invalid entry mode");
+		return -1;
+	}
+
+	if ((error = git_fs_path_lstat(path_for_stat, &st)) < 0)
+		return error;
+
+	if ((error = index_entry_dup(&entry, index, source_entry)) < 0)
+		return error;
+
+	git_index_entry__init_from_stat(entry, &st, !index->distrust_filemode);
+
+	if ((error = index_insert(index, &entry, 1, true, true, false)) < 0)
+		return error;
 
 	git_tree_cache_invalidate_path(index->tree, entry->path);
 	return 0;

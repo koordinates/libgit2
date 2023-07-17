@@ -506,6 +506,16 @@ GIT_EXTERN(int) git_index_remove_directory(
 GIT_EXTERN(int) git_index_add(git_index *index, const git_index_entry *source_entry);
 
 /**
+ * Add or update an index entry from an in-memory struct -
+ * but then populate the stat part of the indexentry by reading the stat
+ * from the file at the given path.
+ * Relative paths are not resolved with respect to any git repository, but simply to the cwd.
+ *
+ * Advanced users only: generally, git_index_add or git_index_add_bypath are what you want.
+ */
+GIT_EXTERN(int) git_index_add_entry_with_custom_stat(git_index *index, const git_index_entry *source_entry, const char *path_for_stat);
+
+/**
  * Return the stage number from a git index entry
  *
  * This entry is calculated from the entry's flag attribute like this:
